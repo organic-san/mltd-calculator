@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ミリシタ周年イベントポイント計算機</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+            padding-bottom: 5rem; /* フッター分のスペース */
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            color: #343a40;
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        #results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background-color: #fafafa;
+            display: none; /* Initially hidden */
+        }
+        .result-section {
+            margin-bottom: 1.5rem;
+        }
+        .result-section h3 {
+            font-size: 1.5rem;
+            color: #495057;
+            border-left: 5px solid #17a2b8;
+            padding-left: 10px;
+            margin-bottom: 1rem;
+        }
+        .result-section table {
+            width: 100%;
+        }
+        .result-section td:first-child {
+            width: 60%;
+            font-weight: 500;
+        }
+        .final-result {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .final-result .fw-bold {
+            color: #dc3545;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            color: #6c757d;
+        }
+        .modal-body ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .modal-body li {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .modal-body .value {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-container d-flex justify-content-between align-items-center">
+            <h1>ミリシタ周年イベントpt計算機</h1>
+            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#assumptionsModal">
+                計算前提
+            </button>
+        </div>
+
+        <form id="event-calculator">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="days-boost-used" class="form-label">ブーストを消化した回数 (0-13)</label>
+                    <input type="number" class="form-control" id="days-boost-used" value="0" min="0" max="13" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="current-pt" class="form-label">現在のpt</label>
+                    <input type="number" class="form-control" id="current-pt" value="0" min="0" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="target-pt" class="form-label">目標pt</label>
+                    <input type="number" class="form-control" id="target-pt" value="2000000" min="0" required>
+                </div>
+                 <div class="col-md-6">
+                    <label for="max-stamina" class="form-label">元気最大値</label>
+                    <input type="number" class="form-control" id="max-stamina" value="140" min="1" required>
+                </div>
+                <div class="col-md-12">
+                    <label for="owned-stamina" class="form-label">手持ちアイテムを合計した元気量</label>
+                    <input type="number" class="form-control" id="owned-stamina" value="0" min="0" required>
+                </div>
+                <div class="col-md-12">
+                    <label for="boost-usage" class="form-label">ブースト中、貯めに振り分ける回数: <span id="boost-usage-value" class="fw-bold text-primary">10</span>回</label>
+                    <input type="range" class="form-range" id="boost-usage" min="3" max="10" value="10" required>
+                </div>
+                 <div class="col-md-12">
+                    <label class="form-label">ブースト期間外のイベント曲プレイ倍率</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="event-multiplier" id="event-1x" value="1">
+                        <label class="form-check-label" for="event-1x">1倍 (アイテム180消費)</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="event-multiplier" id="event-4x" value="4" checked>
+                        <label class="form-check-label" for="event-4x">4倍 (アイテム720消費)</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary w-100 mt-4 py-2 fs-5" onclick="calculate()">計算実行</button>
+        </form>
+
+        <div id="results">
+            </div>
+    </div>
+    
+    <footer>
+        Author: @organic_san
+        <a href="https://twitter.com/organic_kaami" target="_blank" rel="noopener noreferrer">Twitter</a> |
+        <a href="https://github.com/organic-san" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+
+    <div class="modal fade" id="assumptionsModal" tabindex="-1" aria-labelledby="assumptionsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="assumptionsModalLabel">計算前提</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <ul>
+                <li>デイリー配布アイテム: <span class="value">4,540個</span></li>
+                <li>通常曲(元気450消費)での獲得pt: <span class="value">1,071 pt</span></li>
+                <li>通常曲(元気450消費)での獲得アイテム: <span class="value">1,071 個</span></li>
+                <li>イベント曲(1倍)での消費アイテム: <span class="value">180 個</span></li>
+                <li>イベント曲(1倍)での獲得pt: <span class="value">537 pt</span></li>
+                <li>通常曲1回のプレイ時間(お仕事回る時間含む): <span class="value">5分</span></li>
+                <li>イベント曲1回のプレイ時間: <span class="value">3分</span></li>
+                <li>元気回復のジュエルコスト: <span class="value">50個</span></li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // スライダーの値表示を更新
+        const boostUsageSlider = document.getElementById('boost-usage');
+        const boostUsageValue = document.getElementById('boost-usage-value');
+        boostUsageSlider.addEventListener('input', (event) => {
+            boostUsageValue.textContent = event.target.value;
+        });
+
+        // 時間をフォーマットする関数 (分 -> X時間Y分)
+        function formatTime(totalMinutes) {
+            if (totalMinutes <= 0) return "0 分";
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            let result = "";
+            if (hours > 0) result += `${hours} 時間 `;
+            if (minutes > 0) result += `${minutes} 分`;
+            return result.trim();
+        }
+
+        function calculate() {
+            // --- 入力値の取得 ---
+            const daysBoostUsed = parseInt(document.getElementById('days-boost-used').value);
+            const currentPt = parseInt(document.getElementById('current-pt').value);
+            const targetPt = parseInt(document.getElementById('target-pt').value);
+            const boostUsageNormal = parseInt(document.getElementById('boost-usage').value);
+            const boostUsageEvent = 10 - boostUsageNormal; 
+            const eventMultiplier = parseInt(document.querySelector('input[name="event-multiplier"]:checked').value);
+            const maxStamina = parseInt(document.getElementById('max-stamina').value);
+            const ownedStamina = parseInt(document.getElementById('owned-stamina').value);
+            
+            // --- 定数 (仕様変更を反映) ---
+            const DAILY_ITEM = 4540;
+            const EVENT_ITEM_COST_1X = 180;
+            const EVENT_ITEM_COST_4X = EVENT_ITEM_COST_1X * 4; // 720
+            const EVENT_ITEM_COST = eventMultiplier === 1 ? EVENT_ITEM_COST_1X : EVENT_ITEM_COST_4X;
+            const EVENT_PT_1X = 537;
+            const EVENT_PT_4X = EVENT_PT_1X * 4; // 2148
+            const EVENT_PT = eventMultiplier === 1 ? EVENT_PT_1X : EVENT_PT_4X;
+            const NORMAL_STAMINA_COST = 450;
+            const NORMAL_ITEM_GAIN = 1071;
+            const NORMAL_PT_GAIN = 1071;
+            const BOOST_MULTIPLIER = 2;
+            const DAILY_BOOST_COUNT = 13; // 13回に変更
+            const JEWEL_COST_PER_REFILL = 50;
+            const TIME_PER_PLAY_NORMAL = 5; // 通常ライブ1回あたりの時間 (分)
+            const TIME_PER_PLAY_EVENT = 3; // イベント曲1回あたりの時間 (分)
+
+            const remainingDays = 13 - daysBoostUsed;
+            if (remainingDays <= 0 && daysBoostUsed < 13) {
+                 alert("ブースト消化回数が13回以上です。残りブースト回数を0として計算します。");
+            }
+
+            // --- 1. ブースト消費分の計算 ---
+            const boostNormalPlays = boostUsageNormal * remainingDays;
+            const boostNormalStamina = boostNormalPlays * NORMAL_STAMINA_COST;
+            const boostNormalPt = boostNormalPlays * NORMAL_PT_GAIN * BOOST_MULTIPLIER;
+            const boostNormalItems = boostNormalPlays * NORMAL_ITEM_GAIN * BOOST_MULTIPLIER;
+
+            const boostEventPlays = boostUsageEvent * remainingDays;
+            const boostEventPt = boostEventPlays * EVENT_PT_4X;
+            const boostEventItemsUsed = boostEventPlays * EVENT_ITEM_COST_4X;
+            
+            const totalDailyItems = DAILY_ITEM * remainingDays;
+            const totalItemsForEvent = boostNormalItems + totalDailyItems - boostEventItemsUsed;
+            
+            const bItemEventPlays = Math.floor(totalItemsForEvent / EVENT_ITEM_COST);
+            const bItemEventPt = bItemEventPlays * EVENT_PT;
+            
+            const boostTotalPt = boostNormalPt + boostEventPt + bItemEventPt;
+            const boostTotalEventPlays = boostEventPlays + bItemEventPlays;
+            const boostTimeNormal = boostNormalPlays * TIME_PER_PLAY_NORMAL;
+            const boostTimeEvent = (boostEventPlays + bItemEventPlays) * TIME_PER_PLAY_EVENT;
+
+            // --- 2. 基礎ptと目標ptの差 ---
+            const basePtProjection = currentPt + boostTotalPt;
+            const ptShortfall = Math.max(0, targetPt - basePtProjection);
+
+            // --- 3. 差額を埋めるための追加計算 ---
+            let additionalNormalPlays = 0;
+            let additionalEventPlays = 0;
+            let additionalStamina = 0;
+            let additionalTimeNormal = 0;
+            let additionalTimeEvent = 0;
+
+            if (ptShortfall > 0) {
+                const eventPtperPlay = (NORMAL_ITEM_GAIN / EVENT_ITEM_COST * EVENT_PT) + NORMAL_PT_GAIN;
+                additionalNormalPlays = Math.ceil(ptShortfall / eventPtperPlay);
+                additionalEventPlays = Math.ceil(additionalNormalPlays * NORMAL_ITEM_GAIN / EVENT_ITEM_COST);
+                additionalTimeNormal = additionalNormalPlays * TIME_PER_PLAY_NORMAL;
+                additionalTimeEvent = additionalEventPlays * TIME_PER_PLAY_EVENT;
+                additionalStamina = (additionalNormalPlays * NORMAL_STAMINA_COST);
+            }
+            
+            // --- 4. 最終結果の集計 ---
+            const totalNormalPlays = boostNormalPlays + additionalNormalPlays;
+            const totalEventPlays = boostTotalEventPlays + additionalEventPlays;
+            const totalTime = boostTimeNormal + boostTimeEvent + additionalTimeNormal + additionalTimeEvent;
+            
+            const totalStaminaCost = boostNormalStamina + additionalStamina;
+            const staminaShortage = Math.max(0, totalStaminaCost - ownedStamina);
+            const jewelsNeeded = Math.ceil(staminaShortage / maxStamina) * JEWEL_COST_PER_REFILL;
+
+            // --- 結果の表示 ---
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div class="result-section" id="boost-section">
+                    <h3>ブースト期間の計算 (残り${remainingDays > 0 ? remainingDays : 0}日)</h3>
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr><td>獲得できる合計pt</td><td>${boostTotalPt.toLocaleString()} pt</td></tr>
+                            <tr><td>消費する元気量</td><td>${boostNormalStamina.toLocaleString()}</td></tr>
+                            <tr><td>通常曲のプレイ回数</td><td>${boostNormalPlays.toLocaleString()} 回</td></tr>
+                            <tr><td>イベント曲のプレイ回数</td><td>${boostTotalEventPlays.toLocaleString()} 回</td></tr>
+                            <tr>
+                                <td>かかる合計時間</td>
+                                <td>${formatTime(boostTimeNormal + boostTimeEvent)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="result-section" id="gap-section">
+                    <h3>目標ptとの差</h3>
+                    <table class="table">
+                        <tbody>
+                            <tr><td>ブースト期間終了時の予想pt</td><td>${basePtProjection.toLocaleString()} pt</td></tr>
+                            <tr class="table-danger"><td>目標までの不足pt</td><td>${ptShortfall.toLocaleString()} pt</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                ${ptShortfall > 0 ? `
+                <div class="result-section" id="additional-section">
+                    <h3>ブーストなしで回す追加分</h3>
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr><td>通常曲の追加プレイ回数</td><td>${additionalNormalPlays.toLocaleString()} 回</td></tr>
+                            <tr><td>イベント曲の追加プレイ回数</td><td>${additionalEventPlays.toLocaleString()} 回</td></tr>
+                            <tr><td>追加で消費する元気量</td><td>${additionalStamina.toLocaleString()}</td></tr>
+                            <tr><td>追加でかかる時間</td><td>${formatTime(additionalTimeNormal + additionalTimeEvent)}</td></tr>
+                        </tbody>
+                    </table>
+                </div>` : ''}
+
+                <div class="result-section final-result" id="total-section">
+                    <h3>最終合計</h3>
+                    <table class="table mb-0">
+                        <tbody>
+                            <tr><td><strong>通常曲の合計プレイ回数</strong></td><td><strong>${totalNormalPlays.toLocaleString()} 回</strong></td></tr>
+                            <tr><td><strong>イベント曲の合計プレイ回数</strong></td><td><strong>${totalEventPlays.toLocaleString()} 回</strong></td></tr>
+                            <tr><td><strong>イベント完走にかかる総時間</strong></td><td><strong>${formatTime(totalTime)}</strong></td></tr>
+                            <tr><td colspan="2"><hr></td></tr>
+                            <tr><td><strong>総合元気消費量</strong></td><td><strong>${totalStaminaCost.toLocaleString()}</strong></td></tr>
+                            <tr><td>アイテム分の元気</td><td>-${ownedStamina.toLocaleString()}</td></tr>
+                            <tr class="table-warning"><td><strong>不足する元気分</strong></td><td><strong>${staminaShortage.toLocaleString()}</strong></td></tr>
+                            <tr><td colspan="2"><hr></td></tr>
+                            <tr class="table-danger">
+                                <td><strong class="fs-5">ジュエル消費量</strong></td>
+                                <td><strong class="fs-5">${jewelsNeeded.toLocaleString()} 個</strong></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
